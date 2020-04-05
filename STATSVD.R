@@ -228,12 +228,12 @@ STATSVD <- function(Y, r, sigma, tmax, sparse_mode, vartol){
   r.minus.k = prod(r) / r # Introduce r_{-k}
   
   try(if(d != length(r)) stop("invalid input: r and the order of Y is incompatible."))
-  
+  tag.warning = FALSE
   U_t = list(); I_0 = list()
   for(i in 1:d){ # Initialization step 1: find significant index set I_k
     Y_i = k_unfold(Y, i)@data
     Y_i_row_norm = apply(Y_i, 1, vector_sum_square)
-    #consider sparse model!
+    #sparse mode
     if(isTRUE(sparse_mode[i])){
       I_0 = c(I_0, list((apply(Y_i, 1, vector_sum_square) > (sigma^2*(p.minus.k[i]+2*sqrt(p.minus.k[i]*log(p.prod))+2*log(p.prod))))
                         | (apply(abs(Y_i), 1, max) > 2*sigma*sqrt(log(p.prod)))))
@@ -252,6 +252,7 @@ STATSVD <- function(Y, r, sigma, tmax, sparse_mode, vartol){
       datai = k_unfold(tilde_Y, i)@data
       selec = (1:p[i])[I_0[[i]]]
       if(length(selec)<r[i]){  # in case that sk < rk
+        tag.warning = TRUE
         newdata = matrix(0, nrow=nrow(datai), ncol = ncol(datai))
         newdata[selec,] = datai[selec,]
         Ui = (svd(newdata)$u[,1:r[i]])
@@ -285,10 +286,12 @@ STATSVD <- function(Y, r, sigma, tmax, sparse_mode, vartol){
         A_k_row_norm = apply(A_matrix, 1, vector_sum_square)
         I_k = A_k_row_norm > sigma^2 * (r.minus.k[i] + 2*(sqrt(r.minus.k[i]*log(p.prod))+log(p.prod)))
         selec = (1:p[i])[I_k]
-        if(length(selec) < r[i])# supp(B_matrix) not necessarliy > r[i].
+        if(length(selec) < r[i]){
+          #tag.warning = TRUE
           next
-        #B_matrix = matrix(0, nrow(A_matrix), ncol(A_matrix))
-        #B_matrix[I_k,] = A_matrix[I_k,]
+        }
+          
+
         
         B_matrix = A_matrix[I_k,]
         
@@ -296,13 +299,14 @@ STATSVD <- function(Y, r, sigma, tmax, sparse_mode, vartol){
 
         
         bar.A = A_matrix %*% hat.V
-        #bar.B = matrix(0, nrow(bar.A), ncol(bar.A))
         bar.I_k = apply(bar.A, 1, vector_sum_square) > sigma^2 * (r[i] + 2*(sqrt(r[i]*log(p.prod))+log(p.prod)))
         This.U = matrix(0, nrow(bar.A), r[i])
-        #bar.B[bar.I_k, ] = bar.A[bar.I_k,]
         
-        if(length((1:p[i])[bar.I_k]) < r[i])
+        if(length((1:p[i])[bar.I_k]) < r[i]){
+          #tag.warning = TRUE
           next
+        }
+          
         
         C = bar.A[bar.I_k,]
         svd.result = svd(C)
@@ -312,7 +316,6 @@ STATSVD <- function(Y, r, sigma, tmax, sparse_mode, vartol){
       }
     }
     if (abs(sum(svector^2) - approx) > vartol & t<tmax){
-      #print(t)
       t = t+1
       approx = sum(svector^2)
     }
@@ -320,168 +323,14 @@ STATSVD <- function(Y, r, sigma, tmax, sparse_mode, vartol){
       break
     }
   }
-  #print(bar.I_k)
+
   for(i in 1:d){
     U_t[[i]] = t(U_t[[i]])
   }
+  
+  if(tag.warning) warning("Input noise level is too large and the estimation may be not reliable")
+  
   return(U_t)
 }
 
 
-STATSVD.init <- function(Y, r, sigma, sparse_mode){
-  # Sparse tensor PCA algorithm for general order-d tensors
-  
-  try(if(missing("Y")) stop("missing argument: Y is required as the tensor type."))
-  try(if(missing("r")) stop("missing argument: r is required as a scalar or vector."))
-  try(if(class(Y) != "Tensor") stop("invalid input: Y should be of tensor type."))
-  p = dim(Y)
-  d = length(p)
-  try(if(missing("sparse_mode")) sparse_mode=rep(TRUE, d))
-  
-  p.prod = prod(p)
-  p.minus.k = prod(p) / p
-  p.ast = max(p)
-  if(is.atomic(r) && length(r)==1){
-    r = rep(r, d)
-  }
-  r.minus.k = prod(r) / r # Introduce r_{-k}
-  
-  try(if(d != length(r)) stop("invalid input: r and the order of Y is incompatible."))
-  
-  U_t = list(); I_0 = list()
-  for(i in 1:d){ # Initialization step 1: find significant index set I_k
-    Y_i = k_unfold(Y, i)@data
-    Y_i_row_norm = apply(Y_i, 1, vector_sum_square)
-    #consider sparse model!
-    if(isTRUE(sparse_mode[i])){
-      I_0 = c(I_0, list((Y_i_row_norm > sigma^2 * (p.minus.k[i] 
-                                                   + 2*sqrt(p.minus.k[i] * log(p.ast)) + 2*log(p.ast))) 
-                        | (apply(abs(Y_i), 1, max) > 2*sigma*sqrt(p.prod))))
-    }
-    else
-      I_0 = c(I_0, list(rep(TRUE,p[i])))
-    # select the significant indices
-  }
-  tilde_Y = Y
-  for (i in 1:d){ # Initialization step 2: construct tilde_Y
-    tilde_Y = ttm(tilde_Y, diag(I_0[[i]]*1), i)
-  }
-  for (i in 1:d){ # Initialization step 3: find loading U_0k
-    if(isTRUE(sparse_mode[i])){ # some optimization
-      Ui = matrix(0, nrow = p[i], ncol = r[i])
-      datai = k_unfold(tilde_Y, i)@data
-      Ui[I_0[[i]],] = svd(datai[I_0[[i]],])$u[,1:r[i]]
-      U_t = c(U_t, list(t(Ui)))
-    }
-    else{
-      U_t = c(U_t, list(t(svd(k_unfold(tilde_Y, i)@data)$u[,1:r[i]])))
-    }
-    
-  }
-  for(i in 1:d){
-    U_t[[i]] = t(U_t[[i]])
-  }
-  return(U_t)
-}
-
-
-STATSVD.1threshold <- function(Y, r, sigma, tmax, sparse_mode, vartol){
-  # Sparse tensor PCA algorithm for general order-d tensors
-  
-  try(if(missing("Y")) stop("missing argument: Y is required as the tensor type."))
-  try(if(missing("r")) stop("missing argument: r is required as a scalar or vector."))
-  try(if(class(Y) != "Tensor") stop("invalid input: Y should be of tensor type."))
-  try(if(missing("tmax")) tmax = 10)
-  try(if(missing("vartol")) vartol = 1e-6)
-  p = dim(Y)
-  d = length(p)
-  try(if(missing("sparse_mode")) sparse_mode=rep(TRUE, d))
-  
-  p.prod = prod(p)
-  p.minus.k = prod(p) / p
-  p.ast = max(p)
-  if(is.atomic(r) && length(r)==1){
-    r = rep(r, d)
-  }
-  r.minus.k = prod(r) / r # Introduce r_{-k}
-  
-  try(if(d != length(r)) stop("invalid input: r and the order of Y is incompatible."))
-  
-  U_t = list(); I_0 = list()
-  for(i in 1:d){ # Initialization step 1: find significant index set I_k
-    Y_i = k_unfold(Y, i)@data
-    Y_i_row_norm = apply(Y_i, 1, vector_sum_square)
-    #consider sparse model!
-    if(isTRUE(sparse_mode[i])){
-      I_0 = c(I_0, list((Y_i_row_norm > sigma^2 * (p.minus.k[i] 
-                                                   + 2*sqrt(p.minus.k[i] * log(p.ast)) + 2*log(p.ast))) 
-                        | (apply(abs(Y_i), 1, max) > 2*sigma*sqrt(p.prod))))
-    }
-    else
-      I_0 = c(I_0, list(rep(TRUE,p[i])))
-    # select the significant indices
-  }
-  tilde_Y = Y
-  for (i in 1:d){ # Initialization step 2: construct tilde_Y
-    tilde_Y = ttm(tilde_Y, diag(I_0[[i]]*1), i)
-  }
-  for (i in 1:d){ # Initialization step 3: find loading U_0k
-    if(isTRUE(sparse_mode[i])){ # some optimization
-      Ui = matrix(0, nrow = p[i], ncol = r[i])
-      datai = k_unfold(tilde_Y, i)@data
-      Ui[I_0[[i]],] = svd(datai[I_0[[i]],])$u[,1:r[i]]
-      U_t = c(U_t, list(t(Ui)))
-    }
-    else{
-      U_t = c(U_t, list(t(svd(k_unfold(tilde_Y, i)@data)$u[,1:r[i]])))
-    }
-    
-  }
-  
-  
-  t = 1; approx = -1;
-  while(t<tmax){ # Stop criterion: convergence or maximum number of iteration reached
-    #print(t)
-    for(i in 1:d){
-      #print(i)
-      A = ttl(Y, U_t[-i], (1:d)[-i])
-      A_matrix = k_unfold(A, i)@data
-      #print(dim(A_matrix))
-      if(!isTRUE(sparse_mode[i])){
-        svd.result = svd(A_matrix)
-        #print(svd.result)
-        U_t[[i]] = t(svd.result$u[,1:r[i]])
-        svector = svd.result$d[1:r[i]]
-      }
-      else{
-        A_k_row_norm = apply(A_matrix, 1, vector_sum_square)
-        I_k = A_k_row_norm > sigma^2 * (r.minus.k[i] + 2*(sqrt(r.minus.k[i]*log(p.ast))+log(p.ast)))
-        #B_matrix = matrix(0, nrow(A_matrix), ncol(A_matrix))
-        #B_matrix[I_k,] = A_matrix[I_k,]
-        B_matrix = A_matrix[I_k,]
-        #print(B_matrix)
-        if(is.vector(B_matrix))
-          next
-        if(dim(B_matrix)[1]<r[i])
-          next
-        svd.result = svd(B_matrix)
-        This.U = matrix(0, nrow(A_matrix), r[i])
-        This.U[I_k,] = svd.result$u[,1:r[i]]
-        U_t[[i]] = t(This.U) 
-        svector = svd.result$d[1:r[i]]
-      }
-    }
-    if (sum(svector) > approx + vartol){
-      t = t+1
-      approx = sum(svector)
-    }
-    else {
-      break
-    }
-  }
-  #print(bar.I_k)
-  for(i in 1:d){
-    U_t[[i]] = t(U_t[[i]])
-  }
-  return(U_t)
-}
