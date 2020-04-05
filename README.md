@@ -1,5 +1,18 @@
-# Sparse Tensor Alternating Thresholding Singular Value Decomposition. (STAT-SVD for short)
-# implemented by R.
+# STAT-SVD
+R code for Sparse Tensor Alternating Thresholding Singular Value Decomposition (STAT-SVD). 
+
+# Citation
+@article{zhang2019optimal,
+  title={Optimal Sparse Singular Value Decomposition for High-Dimensional High-Order Data},
+  author={Zhang, Anru and Han, Rungang},
+  journal={Journal of the American Statistical Association},
+  volume={114},
+  number={528},
+  pages={1708--1725},
+  year={2019},
+  publisher={Taylor and Francis Ltd}
+}
+
 # Following packages are prerequisited: 'rTensor', 'ssvd', 'MASS'.
 
 # Function Descriptions:
