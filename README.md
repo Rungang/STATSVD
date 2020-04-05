@@ -13,23 +13,21 @@ R code for Sparse Tensor Alternating Thresholding Singular Value Decomposition (
   publisher={Taylor and Francis Ltd}
 }
 
-# Following packages are prerequisited: 'rTensor', 'ssvd', 'MASS'.
+# Instructions
+Algorithm code and auxiliary functions are all contained in STATSVD.R.  
 
-# Function Descriptions:
+STATSVD requires the following packages for full functionality: 'MASS', 'rTensor', 'ssvd'. 
 
-sine.theta(U1, U2); 
-% U1, U2 are two subspaces with the same dimension, return the sine theta distance between U1 and U2.
+The algorithm requires the tensor rank, sparsity mode indexes and noise level as prior. It returns the estimated orthogonal loading (or subspace) for each mode. An estimation of the tensor can be then obtained via projection. See example.R for illustration.
 
-get.sigma(T);
-% T is a tensor-type variable, return the estimated standard deviation of noise under the regular Gaussian model.
-% You are highly recommended to use empirical estimator when the noise is far from Gaussian.
+Adaptive estimations for rank and noise level are provided, but may only be valid under Gaussian additive model (i.e. Y = X + Z), see the paper for more details.
 
-get.rank(T);
-% T is a tensor-type variable, return the estimated Tucker rank as an array.
-% You are highly recommended to use empirical estimator when the noise is far from Gaussian.
+# Auxiliary Functions
+```R
+sine.theta(U1, U2); % Calculate the sine theta distance between subspaces U1 and U2.
+sigma.hat = get.sigma(Y); % Estimate standard deviation of noise under the regular Gaussian additive model given observed tensor Y.
+r.hat = get.rank(Y); Estimate Tucker rank given observed tensor Y.
+```
 
-HOSVD(T, r, sparse_mode);
-% T is a noisy tensor, r is the Tucker rank array (can be automatically estimated when missing). sparse_mode is a logic array with the same length as r.
-% Return the estimated singular space in each mode calculated by HOSVD.
-% e.g.  >>>> U = HOSVD(T, c(3,4,5), sparse_mode = c(TRUE, TRUE, FALSE)); # U[[1]] is of size (p1*3); U[[1]] and U[[2]] would be sparse while U[[3]] is nonsparse.
+Please contact rhan32@stat.wisc.edu with any questions or comments.
 
