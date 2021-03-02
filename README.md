@@ -16,12 +16,10 @@ This is the R package for paper: "Optimal Sparse Singular Value Decomposition fo
 # Instructions
 STATSVD requires the following packages for full functionality: 'MASS', 'rTensor', 'ssvd'. Use the following commands for installation:
 
-library(devtools)
-
+library(devtools)  
 devtools::install_github("Rungang/STATSVD")
 
-
-See example.R for illustration.
+See example.R for illustrating usage.
 
 Please contact rhan32@stat.wisc.edu with any questions or comments.
 
