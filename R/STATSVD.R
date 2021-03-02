@@ -1,10 +1,7 @@
-# Source code for STATSVD and two partial algorithm version.
-# We also implement several baselines including HOSVD, HOOI, SHOSVD, SHOOI.
-
-
-require(rTensor)
-require(ssvd)
-require(MASS)
+#' @import rTensor
+#' @import ssvd
+#' @import MASS
+NULL
 
 #' Calculate the Square of l2 norm of a vector.
 #' @param x Input vector.
@@ -19,6 +16,7 @@ vector_sum_square <- function(x){
 #' @param hatU Second subspace
 #' @param q Hilbert-Schmidt norm
 #' @return q-sine-theta distances
+#' @export
 sine.theta <- function(U, hatU, q){ # Sine-theta distance between two singular subspaces.
   # U and hatU should be of the same dimensions
   try(if(missing("q")) q = 2)
@@ -38,6 +36,7 @@ sine.theta <- function(U, hatU, q){ # Sine-theta distance between two singular s
 #'
 #' @param Y Input tensor, with dimension p1*p2*...*pd.
 #' @return Estimate of standard deviation of Gaussian noise.
+#' @export
 get.sigma <- function(Y){
   if(missing("Y")) stop("missing argument: Y is required as the tensor type.")
   try(if(class(Y) != "Tensor") stop("invalid input: Y should be of tensor type."))
@@ -53,6 +52,7 @@ get.sigma <- function(Y){
 #' @param sigma (Estimated) Gaussian noise level
 #' @param sparse_mode A d-dimensional logicical vector that indicates whether each mode is sparse.
 #' @return Estimated rank as a d-dimensinal integer tuple
+#' @export
 get.rank <- function(Y, sigma, sparse_mode){
   if(missing("Y")) stop("missing argument: Y is required as the tensor type.")
   if(missing("sigma")) stop("missing argument: sigma is required as the non-negative double")
@@ -108,6 +108,7 @@ get.rank <- function(Y, sigma, sparse_mode){
 #' @param r (Estimated) Tucker ranks.
 #' @param sparse_mode A d-dimensional logicical vector that indicates whether each mode is sparse.
 #' @return Estimated subspace in each mode.
+#' @export
 HOSVD <- function(Y, r, sparse_mode){
   try(if(missing("Y")) stop("missing argument: Y is required as the tensor type."))
   try(if(missing("r")) stop("missing argument: r is required as a scalar or vector."))
@@ -150,6 +151,7 @@ HOSVD <- function(Y, r, sparse_mode){
 #' @param tmax Maximal iteration times.
 #' @param vartol Covergence telorance.
 #' @return Estimated subspace in each mode.
+#' @export
 HOOI <- function(Y, r, sparse_mode , tmax, vartol){
   try(if(missing("Y")) stop("missing argument: Y is required as the tensor type."))
   try(if(missing("r")) stop("missing argument: r is required as a scalar or vector."))
@@ -227,6 +229,7 @@ HOOI <- function(Y, r, sparse_mode , tmax, vartol){
 #' @param sparse_mode A d-dimensional logicical vector that indicates whether each mode is sparse.
 #' @param vartol Covergence telorance.
 #' @return Estimated subspace in each mode.
+#' @export
 STATSVD <- function(Y, r, sigma, tmax, sparse_mode, vartol){
   # Sparse tensor PCA algorithm for general order-d tensors
 

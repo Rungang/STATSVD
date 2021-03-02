@@ -6,6 +6,10 @@ Author: Anru Zhang, Rungang Han
 Maintainer: Rungang Han <rhan32@stat.wisc.edu>
 Description: Fast sparse tensor decomposition via alternating thresholding SVD. 
     See Zhang and Han (2019) for reference.
+Depends:
+    rTensor,
+    ssvd,
+    MASS,
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true

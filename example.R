@@ -1,4 +1,4 @@
-source("STATSVD.R")
+library(STATSVD)
 set.seed(100)
 # Parameter setting
 p = c(50, 50, 50) # dimension.
@@ -8,8 +8,8 @@ lambda = 60 # Least singular value of signal tensor.
 sigma = 0.5 # Noise level.
 
 # Generate a low-rank tensor.
-S.array = array(rnorm(prod(r)), dim=r) 
-S = as.tensor(S.array) 
+S.array = array(rnorm(prod(r)), dim=r)
+S = as.tensor(S.array)
 d1 = svd(k_unfold(S,1)@data)$d
 d2 = svd(k_unfold(S,2)@data)$d
 d3 = svd(k_unfold(S,3)@data)$d
@@ -18,7 +18,7 @@ S = S*lambda/lambda0 # Core tensor
 
 U1 = matrix(0, p[1], r[1]); U2 = matrix(0, p[2], r[2]); U3 = matrix(0, p[3], r[3])
 U1[sample(p[1], s[1]),] = svd(matrix(rnorm(s[1]*r[1]), nrow=s[1], ncol=r[1]))$u
-U2[sample(p[2], s[2]),] = svd(matrix(rnorm(s[2]*r[2]), nrow=s[2], ncol=r[2]))$u 
+U2[sample(p[2], s[2]),] = svd(matrix(rnorm(s[2]*r[2]), nrow=s[2], ncol=r[2]))$u
 U3[sample(p[3], s[3]),] = svd(matrix(rnorm(s[3]*r[3]), nrow=s[3], ncol=r[3]))$u # loadings
 X = ttm(ttm(ttm(S, U1, 1), U2, 2), U3, 3)
 Z = sigma * as.tensor(array(rnorm(prod(p)), dim=p))
