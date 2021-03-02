@@ -1,4 +1,3 @@
-source("STATSVD.R")
 set.seed(100)
 # Parameter setting
 p = c(50, 50, 50) # dimension.
