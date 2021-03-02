@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 library(STATSVD)
+=======
+>>>>>>> a215e08dc581744950ca249aee3bf2e4922f578f
 set.seed(100)
 # Parameter setting
 p = c(50, 50, 50) # dimension.
