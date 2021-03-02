@@ -1,0 +1,12 @@
+HOOI                    Sparse low-rank tensor decomposition using
+                        High-order orthogonal iteration
+HOSVD                   Sparse low-rank tensor decomposition using
+                        High-order SVD
+STATSVD                 Sparse low-rank tensor decomposition using
+                        STATSVD. See Zhang and Han (2019) for
+                        reference.
+get.rank                Estimate Tucker rank of a given tensor
+get.sigma               Estimate Gaussian noise level via MAD.
+sine.theta              Calculate the sine-theta distance between two
+                        subspaces
+vector_sum_square       Calculate the Square of l2 norm of a vector.
