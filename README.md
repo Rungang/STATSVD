@@ -1,4 +1,4 @@
-# STAT-SVD
+# STATSVD
 R code for Sparse Tensor Alternating Thresholding Singular Value Decomposition (STAT-SVD). 
 
 # Citation
